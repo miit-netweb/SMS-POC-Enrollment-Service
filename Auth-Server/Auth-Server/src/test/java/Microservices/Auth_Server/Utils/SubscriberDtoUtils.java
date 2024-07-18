@@ -2,10 +2,7 @@ package Microservices.Auth_Server.Utils;
 
 import Microservices.Auth_Server.Dto.EnrollmentDetail;
 import Microservices.Auth_Server.Dto.PartnerCredential;
-<<<<<<< HEAD
-import Microservices.Auth_Server.Dto.SubscriberData;
-=======
->>>>>>> 3b4a613d27fb378deabcefa388a1d5b92f57d45f
+
 import Microservices.Auth_Server.Dto.SubscriberDto;
 
 import static org.mockito.Mockito.*;
@@ -26,7 +23,6 @@ public class SubscriberDtoUtils {
 //    }
 
 
-
     public static SubscriberDto createSubscriberDto() {
         SubscriberDto subscriberDto = new SubscriberDto();
 
@@ -37,10 +33,6 @@ public class SubscriberDtoUtils {
 
         // Mocking EnrollmentDetail
         EnrollmentDetail enrollmentDetailMock = mock(EnrollmentDetail.class);
-<<<<<<< HEAD
-        //Mocking  SubscriberData
-=======
->>>>>>> 3b4a613d27fb378deabcefa388a1d5b92f57d45f
 
         // Setting up behavior for EnrollmentDetail mock
         lenient().when(enrollmentDetailMock.getPartnerNumber()).thenReturn(88889999L);
@@ -52,9 +44,4 @@ public class SubscriberDtoUtils {
         return subscriberDto;
     }
 
-<<<<<<< HEAD
 }
-=======
-}
- 
->>>>>>> 3b4a613d27fb378deabcefa388a1d5b92f57d45f
