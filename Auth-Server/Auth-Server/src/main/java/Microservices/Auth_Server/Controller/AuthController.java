@@ -1,8 +1,10 @@
 package Microservices.Auth_Server.Controller;
 
 import Microservices.Auth_Server.Dto.*;
+import Microservices.Auth_Server.Entity.PartnerTokenValidation;
 import Microservices.Auth_Server.Service.AuthService;
 import Microservices.Auth_Server.Service.JwtService;
+import Microservices.Auth_Server.Service.PartnerTokenValidationService;
 import Microservices.Auth_Server.proxy.JwtServerProxy;
 import Microservices.Auth_Server.publisher.RabbitMQProducer;
 import org.slf4j.Logger;
@@ -31,10 +33,11 @@ public class AuthController {
     @Autowired
     private JwtServerProxy jwtServerProxy;
     @Autowired
+    private PartnerTokenValidationService partnerTokenValidationService;
+    @Autowired
     private RabbitMQProducer rabbitMQProducer;
 
-
-
+    
     @PostMapping("/register")
     public ResponseEntity<?> addNewUser(@RequestBody SubscriberDto user) {
         try{
@@ -44,7 +47,7 @@ public class AuthController {
                 ResponseDto responseDto = service.checkPartnerNumber(user);
                if(responseDto == null){
                    LOGGER.info(String.format("partner number-> %s validated successfully",user.getEnrollmentDetail().getPartnerNumber()));
-                   ResponseEntity<?> tokenGenerationResponseDto = jwtServerProxy.tokenGenerationForPartner(user.getEnrollmentDetail().getPartnerNumber());
+                   TokenGenerationResponseDto tokenGenerationResponseDto = partnerTokenValidationService.generatePartnerNumberToken(user.getEnrollmentDetail().getPartnerNumber());
                    LOGGER.info(String.format("JWT Token generated successful for user of partner number-> %s",user.getEnrollmentDetail().getPartnerNumber()));
                    EmailMessageDto emailMessageDto = new EmailMessageDto(user.getEnrollmentDetail().getSubscriberData().getEmail(),"Demo message",99995555L,122);
                    CompletableFuture.runAsync(() -> rabbitMQProducer.sendMessage(emailMessageDto));
