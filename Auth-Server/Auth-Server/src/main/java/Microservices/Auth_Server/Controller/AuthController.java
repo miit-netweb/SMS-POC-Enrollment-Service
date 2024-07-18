@@ -49,7 +49,7 @@ public class AuthController {
                    LOGGER.info(String.format("partner number-> %s validated successfully",user.getEnrollmentDetail().getPartnerNumber()));
                    TokenGenerationResponseDto tokenGenerationResponseDto = partnerTokenValidationService.generatePartnerNumberToken(user.getEnrollmentDetail().getPartnerNumber());
                    LOGGER.info(String.format("JWT Token generated successful for user of partner number-> %s",user.getEnrollmentDetail().getPartnerNumber()));
-                   EmailMessageDto emailMessageDto = new EmailMessageDto(user.getEnrollmentDetail().getSubscriberData().getEmail(),"Demo message",99995555L,122);
+                   EmailMessageDto emailMessageDto = new EmailMessageDto(user.getEnrollmentDetail().getSubscriberData().getEmail(),user.getEnrollmentDetail().getSubscriberData().getFirstName(),user.getEnrollmentDetail().getSubscriberData().getLastName(),99995555L,800);
                    CompletableFuture.runAsync(() -> rabbitMQProducer.sendMessage(emailMessageDto));
                    System.out.println("returning response entity");
                    System.out.println(Thread.currentThread().getName());

@@ -2,16 +2,18 @@ package Microservices.Auth_Server.Dto;
 
 public class EmailMessageDto {
     private String email;
-    private String message;
+    private String fname;
+    private String lname;
     private long memId;
     private int code;
 
     public EmailMessageDto() {
     }
 
-    public EmailMessageDto(String email, String message, long memId, int code) {
+    public EmailMessageDto(String email, String fname, String lname, long memId, int code) {
         this.email = email;
-        this.message = message;
+        this.fname = fname;
+        this.lname = lname;
         this.memId = memId;
         this.code = code;
     }
@@ -24,12 +26,20 @@ public class EmailMessageDto {
         this.email = email;
     }
 
-    public String getMessage() {
-        return message;
+    public String getFname() {
+        return fname;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setFname(String fname) {
+        this.fname = fname;
+    }
+
+    public String getLname() {
+        return lname;
+    }
+
+    public void setLname(String lname) {
+        this.lname = lname;
     }
 
     public long getMemId() {
@@ -52,7 +62,6 @@ public class EmailMessageDto {
     public String toString() {
         return "MessageDto{" +
                 "email='" + email + '\'' +
-                ", message='" + message + '\'' +
                 ", memId=" + memId +
                 ", code=" + code +
                 '}';
