@@ -1,4 +1,4 @@
-package Microservices.Auth_Server.publisher;
+package Microservices.Auth_Server.Publisher;
 
 import Microservices.Auth_Server.Dto.EmailMessageDto;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;

@@ -1,21 +1,27 @@
 package Microservices.Auth_Server.Controller;
 
-import Microservices.Auth_Server.Dto.*;
-import Microservices.Auth_Server.Entity.PartnerTokenValidation;
-import Microservices.Auth_Server.Service.AuthService;
-import Microservices.Auth_Server.Service.JwtService;
-import Microservices.Auth_Server.Service.PartnerTokenValidationService;
-import Microservices.Auth_Server.proxy.JwtServerProxy;
-import Microservices.Auth_Server.publisher.RabbitMQProducer;
+import java.util.concurrent.CompletableFuture;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.concurrent.CompletableFuture;
+import Microservices.Auth_Server.Dto.EmailMessageDto;
+import Microservices.Auth_Server.Dto.ResponseDto;
+import Microservices.Auth_Server.Dto.SubscriberDto;
+import Microservices.Auth_Server.Dto.TokenGenerationResponseDto;
+import Microservices.Auth_Server.Publisher.RabbitMQProducer;
+import Microservices.Auth_Server.Service.AuthService;
+import Microservices.Auth_Server.Service.JwtService;
+import Microservices.Auth_Server.Service.PartnerTokenValidationService;
+import Microservices.Auth_Server.proxy.JwtServerProxy;
 
 
 @RestController
