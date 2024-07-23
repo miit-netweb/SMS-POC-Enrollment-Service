@@ -1,4 +1,8 @@
+<<<<<<< HEAD:Enrollment-Service/Enrollment-Service/src/test/java/Microservices/Enrollment_Service/service/AuthServiceTest.java
 package Microservices.Enrollment_Service.service;
+=======
+package Microservices.Auth_Server.service;
+>>>>>>> 39d81b4dc76eb5fb857ff401dd2fff86c8833843:Auth-Server/Auth-Server/src/test/java/Microservices/Auth_Server/service/AuthServiceTest.java
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

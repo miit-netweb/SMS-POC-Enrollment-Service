@@ -1,4 +1,5 @@
-package Microservices.Enrollment_Service.publisher;
+
+package Microservices.Enrollment_Service.Publisher;
 
 import Microservices.Enrollment_Service.Dto.EmailMessageDto;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
