@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import Microservices.Enrollment_Service.Dto.EmailMessageDto;
+import Microservices.Enrollment_Service.Dto.PartnerServiceDto;
 import Microservices.Enrollment_Service.Dto.SubscriberDto;
 import Microservices.Enrollment_Service.Publisher.RabbitMQProducer;
 import Microservices.Enrollment_Service.Service.AuthService;
@@ -19,10 +20,10 @@ import Microservices.Enrollment_Service.proxy.JwtServerProxy;
 import Microservices.Enrollment_Service.proxy.PartnerServiceProxy;
 
 @RestController
-@RequestMapping("/auth")
-public class AuthController {
+@RequestMapping("/enroll")
+public class EnrollmentController {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(EnrollmentController.class);
 
 	@Autowired
 	private AuthService service;
@@ -34,14 +35,17 @@ public class AuthController {
 	@Autowired
 	private RabbitMQProducer rabbitMQProducer;
 
-	@PostMapping("/register")
+	@PostMapping("/subscriber")
 	public ResponseEntity<?> addNewUser(@RequestBody SubscriberDto user) {
 		LOGGER.info("Started validating user");
 		if (service.ValidateResponse(user) == true) {
 			LOGGER.info("Validation successful for user of partner number-> {}",
 					user.getEnrollmentDetail().getPartnerNumber());
-			//ResponseDto responseDto = service.checkPartnerNumber(user);
-			ResponseEntity<Boolean> responseDto=partnerProxy.validatePartner(user.getPartnerCredential(), user.getEnrollmentDetail().getPartnerNumber());
+
+			ResponseEntity<Boolean> responseDto = partnerProxy.validatePartner(
+					new PartnerServiceDto(user.getPartnerCredential(),
+							user.getEnrollmentDetail().getSubscriptionData()),
+					user.getEnrollmentDetail().getPartnerNumber());
 
 			if (responseDto.getBody() == true) {
 				LOGGER.info("partner number-> {} validated successfully",

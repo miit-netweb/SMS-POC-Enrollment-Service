@@ -6,12 +6,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import Microservices.Enrollment_Service.Dto.PartnerCredential;
+import Microservices.Enrollment_Service.Dto.PartnerServiceDto;
 
 @FeignClient(name="PARTNER-SERVICE")
 public interface PartnerServiceProxy {
 
 	@PostMapping("partner/validate/{partnerNumber}")
-	public ResponseEntity<Boolean> validatePartner(@RequestBody PartnerCredential credential,@PathVariable Long partnerNumber);
+	public ResponseEntity<Boolean> validatePartner(@RequestBody PartnerServiceDto serviceDto,@PathVariable Long partnerNumber);
 	
 }
