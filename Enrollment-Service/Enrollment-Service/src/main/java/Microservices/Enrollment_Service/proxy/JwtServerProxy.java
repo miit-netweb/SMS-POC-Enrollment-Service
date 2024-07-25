@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 
-@FeignClient(name="JWT-Server", url = "http://localhost:8765/generate")
+@FeignClient(name="TOKEN-SERVICE")
 public interface JwtServerProxy {
-    @GetMapping("/token/{partner_number}")
+    @GetMapping("generate/token/{partner_number}")
     public ResponseEntity<?> tokenGenerationForPartner(@PathVariable("partner_number") long partnerNumber);
 }

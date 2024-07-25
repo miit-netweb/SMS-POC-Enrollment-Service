@@ -16,10 +16,7 @@ public enum ErrorCodes {
 	NULL_CARD_DETAILS(1012,"Card detail is null"),
 	INVALID_CARD_NUMBER(1013,"Card number is invalid"),
 	EXPIRED_CARD(1014,"Card has expired"),
-	
-	NO_PARTNER_EXIST(1015,"No such partner exist"),
-	INVALID_UUID(1016,"Partner number is invalid,wrong UUID"),
-	INVALID_SECRET_KEY(1017,"Partner number is invalid,wrong Secret Key");
+	INVALID_MOBILE_NUMBER(1019,"Mobile number should be 10 digit");
 	
 	
 	private int errorCode;

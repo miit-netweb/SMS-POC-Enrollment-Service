@@ -1,38 +1,23 @@
 package Microservices.Enrollment_Service.Service;
 
-import Microservices.Enrollment_Service.Dto.ResponseDto;
-import Microservices.Enrollment_Service.Dto.SubscriberDto;
-import Microservices.Enrollment_Service.Entity.PartnerDetail;
-import Microservices.Enrollment_Service.Repository.PartnerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.http.HttpStatus;
-import Microservices.Enrollment_Service.exception.ValidationException;
-import Microservices.Enrollment_Service.exception.ErrorCodes;
+import org.springframework.stereotype.Service;
 
+import Microservices.Enrollment_Service.Dto.SubscriberDto;
+import Microservices.Enrollment_Service.exception.ErrorCodes;
+import Microservices.Enrollment_Service.exception.ValidationException;
 
 @Service
 public class AuthService {
-
-	@Autowired
-	private PartnerRepository partnerRepository;
-
-    public AuthService(PartnerRepository partnerRepository) {
-        this.partnerRepository = partnerRepository;
-    }
-
-
 
 	public static boolean isAlphaNumeric(String str) {
 		String regex = "^[a-zA-Z0-9]*$";
 		return str.matches(regex);
 	}
-
 
 	public static boolean isAlpha(String str) {
 		if (str == null || str == "") {
@@ -59,8 +44,7 @@ public class AuthService {
 		return matcher.matches();
 	}
 
-
-	public ResponseDto ValidateResponse(SubscriberDto subscriber) {
+	public boolean ValidateResponse(SubscriberDto subscriber) {
 
 		if (subscriber == null) {
 			throw new ValidationException(ErrorCodes.NULL_SUBSCRIBER_ERROR.getErrorCode(),
@@ -98,6 +82,11 @@ public class AuthService {
 
 			throw new ValidationException(ErrorCodes.ALPHABETIC_ERROR.getErrorCode(),
 					ErrorCodes.ALPHABETIC_ERROR.getErrorMessage(), HttpStatus.BAD_REQUEST);
+
+		} else if (String.valueOf(subscriber.getEnrollmentDetail().getSubscriberData().getPhoneNumber()).length() != 10) {
+			throw new ValidationException(ErrorCodes.INVALID_MOBILE_NUMBER.getErrorCode(),
+					ErrorCodes.INVALID_MOBILE_NUMBER.getErrorMessage(), HttpStatus.BAD_REQUEST);
+
 		} else if (subscriber.getEnrollmentDetail().getSubscriberData().getBillingDetail() == null) {
 
 			throw new ValidationException(ErrorCodes.NULL_BILLING_DETAILS.getErrorCode(),
@@ -113,10 +102,8 @@ public class AuthService {
 			throw new ValidationException(ErrorCodes.NULL_CARD_DETAILS.getErrorCode(),
 					ErrorCodes.NULL_CARD_DETAILS.getErrorMessage(), HttpStatus.BAD_REQUEST);
 
-		} else if (16 > subscriber.getEnrollmentDetail().getSubscriberData().getBillingDetail().getCardDetail()
-				.getCardNumber().length()
-				|| subscriber.getEnrollmentDetail().getSubscriberData().getBillingDetail().getCardDetail()
-						.getCardNumber().length() < 16) {
+		} else if (subscriber.getEnrollmentDetail().getSubscriberData().getBillingDetail().getCardDetail()
+				.getCardNumber().length() != 16) {
 
 			throw new ValidationException(ErrorCodes.INVALID_CARD_NUMBER.getErrorCode(),
 					ErrorCodes.INVALID_CARD_NUMBER.getErrorMessage(), HttpStatus.BAD_REQUEST);
@@ -126,28 +113,29 @@ public class AuthService {
 			throw new ValidationException(ErrorCodes.EXPIRED_CARD.getErrorCode(),
 					ErrorCodes.EXPIRED_CARD.getErrorMessage(), HttpStatus.BAD_REQUEST);
 		}
-		return null;
+		return true;
 	}
 
-	public ResponseDto checkPartnerNumber(SubscriberDto user) {
-		PartnerDetail partnerDetail = partnerRepository
-				.findByPartnerNumber(user.getEnrollmentDetail().getPartnerNumber());
-		if (partnerDetail == null) {
-			throw new ValidationException(ErrorCodes.NO_PARTNER_EXIST.getErrorCode(),
-					ErrorCodes.NO_PARTNER_EXIST.getErrorMessage(), HttpStatus.BAD_REQUEST);
-
-		} else if (!partnerDetail.getPartnerUuid().equals(user.getPartnerCredential().getPartnerUuid())) {
-
-			throw new ValidationException(ErrorCodes.INVALID_UUID.getErrorCode(),
-					ErrorCodes.INVALID_UUID.getErrorMessage(), HttpStatus.BAD_REQUEST);
-
-		} else if (!partnerDetail.getPartnerSecret().equals(user.getPartnerCredential().getPartnerSecret())) {
-
-			throw new ValidationException(ErrorCodes.INVALID_SECRET_KEY.getErrorCode(),
-					ErrorCodes.INVALID_SECRET_KEY.getErrorMessage(), HttpStatus.BAD_REQUEST);
-
-		}
-		return null;
-	}
+	//Removed From this service added in Partner Service
+//	public ResponseDto checkPartnerNumber(SubscriberDto user) {
+//		PartnerDetail partnerDetail = partnerRepository
+//				.findByPartnerNumber(user.getEnrollmentDetail().getPartnerNumber());
+//		if (partnerDetail == null) {
+//			throw new ValidationException(ErrorCodes.NO_PARTNER_EXIST.getErrorCode(),
+//					ErrorCodes.NO_PARTNER_EXIST.getErrorMessage(), HttpStatus.BAD_REQUEST);
+//
+//		} else if (!partnerDetail.getPartnerUuid().equals(user.getPartnerCredential().getPartnerUuid())) {
+//
+//			throw new ValidationException(ErrorCodes.INVALID_UUID.getErrorCode(),
+//					ErrorCodes.INVALID_UUID.getErrorMessage(), HttpStatus.BAD_REQUEST);
+//
+//		} else if (!partnerDetail.getPartnerSecret().equals(user.getPartnerCredential().getPartnerSecret())) {
+//
+//			throw new ValidationException(ErrorCodes.INVALID_SECRET_KEY.getErrorCode(),
+//					ErrorCodes.INVALID_SECRET_KEY.getErrorMessage(), HttpStatus.BAD_REQUEST);
+//
+//		}
+//		return null;
+//	}
 
 }
