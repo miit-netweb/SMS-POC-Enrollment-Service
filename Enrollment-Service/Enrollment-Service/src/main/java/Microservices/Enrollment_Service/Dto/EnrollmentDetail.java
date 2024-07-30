@@ -3,9 +3,19 @@ package Microservices.Enrollment_Service.Dto;
 public class EnrollmentDetail {
     private long partnerNumber;
     private SubscriberData subscriberData;
+    private SubscriptionData subscriptionData;
 
-    public EnrollmentDetail() {
+    public SubscriptionData getSubscriptionData() {
+		return subscriptionData;
+	}
+
+	public void setSubscriptionData(SubscriptionData subscriptionData) {
+		this.subscriptionData = subscriptionData;
+	}
+
+	public EnrollmentDetail() {
     }
+
 
     public long getPartnerNumber() {
         return partnerNumber;

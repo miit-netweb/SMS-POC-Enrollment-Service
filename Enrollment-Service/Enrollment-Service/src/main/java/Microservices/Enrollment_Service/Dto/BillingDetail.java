@@ -8,6 +8,8 @@ public class BillingDetail {
     public BillingDetail() {
     }
 
+
+
     public String getAddress() {
         return address;
     }
