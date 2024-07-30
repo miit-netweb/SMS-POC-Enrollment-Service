@@ -42,7 +42,7 @@ public class EnrollmentController {
 	@PostMapping("/subscriber")
 	public ResponseEntity<?> addNewUser(@RequestBody SubscriberDto user) {
 		LOGGER.info("Started validating user");
-		if (service.ValidateResponse(user) == true) {
+		if (service.ValidateResponse(user)) {
 			LOGGER.info("Validation successful for user of partner number-> {}",
 					user.getEnrollmentDetail().getPartnerNumber());
 
@@ -59,7 +59,7 @@ public class EnrollmentController {
 				LOGGER.info("JWT Token generated successfully for user of partner number-> {}",
 						user.getEnrollmentDetail().getPartnerNumber());
 				// Subscriber Number Generated
-				final String SUBSCRIBER_NUMBER = service.generateRandomAlphaNumeric();
+				final String SUBSCRIBER_NUMBER = AuthService.generateRandomAlphaNumeric();
 				LOGGER.info("Generated Subscriber Number {}", SUBSCRIBER_NUMBER);
 
 				ResponseEntity<Boolean> thirdPartyResponse = thirdPartyProxy.createCustomer(
@@ -67,7 +67,7 @@ public class EnrollmentController {
 								user.getEnrollmentDetail().getSubscriptionData().getSubtypeNumber()));
 
 
-				if (thirdPartyResponse.getBody() == true) {
+				if (Boolean.TRUE.equals(thirdPartyResponse.getBody())) {
 
 //================================================================================================
 //===========================    EMAIL SERVICE     (2) ===============================================
@@ -86,7 +86,6 @@ public class EnrollmentController {
 					// ADD in Billing Pending Table
 
 					// KAFKA :
-
 					CompletableFuture.runAsync(()-> billingProducer.sendMessage(new SubscriptionBillingDto(SUBSCRIBER_NUMBER,user.getEnrollmentDetail().getPartnerNumber(),user.getEnrollmentDetail().getSubscriberData().getBillingDetail().getCardDetail(), subscriptionData.getBody())));
 
 //=================================   ENDED  =========================================================
