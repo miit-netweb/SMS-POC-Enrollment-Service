@@ -2,6 +2,7 @@
 package Microservices.Enrollment_Service.Publisher;
 
 import Microservices.Enrollment_Service.Dto.EmailMessageDto;
+import Microservices.Enrollment_Service.Entity.EmailPending;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -22,7 +23,7 @@ public class RabbitMQProducer {
         this.rabbitTemplate = rabbitTemplate;
     }
     @Async
-    public void sendMessage(EmailMessageDto message){
+    public void sendMessage(EmailPending message){
         System.out.println(String.format("Message sent -> %s",message));
         System.out.println(Thread.currentThread().getName());
         try {

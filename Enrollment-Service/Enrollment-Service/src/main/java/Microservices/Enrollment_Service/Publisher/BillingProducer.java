@@ -1,6 +1,7 @@
 package Microservices.Enrollment_Service.Publisher;
 
 import Microservices.Enrollment_Service.Dto.SubscriptionBillingDto;
+import Microservices.Enrollment_Service.Entity.BillingPending;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -19,7 +20,7 @@ public class BillingProducer {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void sendMessage(SubscriptionBillingDto subscriptionBillingDto){
+    public void sendMessage(BillingPending billingPending){
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -27,7 +28,7 @@ public class BillingProducer {
 
         try {
             // Convert POJO to JSON string
-            String jsonString = objectMapper.writeValueAsString(subscriptionBillingDto);
+            String jsonString = objectMapper.writeValueAsString(billingPending);
 
             System.out.println( " STRING : "+ jsonString);
 

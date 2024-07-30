@@ -3,7 +3,12 @@ package Microservices.Enrollment_Service.Controller;
 import java.util.concurrent.CompletableFuture;
 
 import Microservices.Enrollment_Service.Dto.*;
+import Microservices.Enrollment_Service.Entity.BillingPending;
+import Microservices.Enrollment_Service.Entity.EmailPending;
+import Microservices.Enrollment_Service.Entity.PersonalDetails;
 import Microservices.Enrollment_Service.Publisher.BillingProducer;
+import Microservices.Enrollment_Service.Service.BillingService;
+import Microservices.Enrollment_Service.Service.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +42,10 @@ public class EnrollmentController {
 	private RabbitMQProducer rabbitMQProducer;
 	@Autowired
 	private BillingProducer billingProducer;
+	@Autowired
+	private EmailService emailService;
+	@Autowired
+	private BillingService billingService;
 
 
 	@PostMapping("/subscriber")
@@ -69,25 +78,31 @@ public class EnrollmentController {
 
 				if (Boolean.TRUE.equals(thirdPartyResponse.getBody())) {
 
-//================================================================================================
-//===========================    EMAIL SERVICE     (2) ===============================================
-					EmailMessageDto emailMessageDto = new EmailMessageDto(
-							user.getEnrollmentDetail().getSubscriberData().getEmail(),
-							user.getEnrollmentDetail().getSubscriberData().getFirstName(),
-							user.getEnrollmentDetail().getSubscriberData().getLastName(), 99995555L, 800);
-					CompletableFuture.runAsync(() -> rabbitMQProducer.sendMessage(emailMessageDto));
-					LOGGER.info("returning response entity");
-//=================================   ENDED  =========================================================
-//====================================================================================================
+
 
 //================================================================================================
 //===========================    BILLING SERVICE    (1)  ===============================================
 
-					// ADD in Billing Pending Table
+					// ADD in Billing Pending Table   AND   KAFKA :
+					CompletableFuture.runAsync(()->{
+						BillingPending billingPending = new BillingPending(SUBSCRIBER_NUMBER, user.getEnrollmentDetail().getPartnerNumber(),
+								subscriptionData.getBody().getSubtypeNumber(),
+								subscriptionData.getBody().getPricingRoutine(), "BILLING-PENDING"
+						);
+						billingService.saveBillingPendingEntry(billingPending);
+						billingProducer.sendMessage(billingPending);
+					});
 
-					// KAFKA :
-					CompletableFuture.runAsync(()-> billingProducer.sendMessage(new SubscriptionBillingDto(SUBSCRIBER_NUMBER,user.getEnrollmentDetail().getPartnerNumber(),user.getEnrollmentDetail().getSubscriberData().getBillingDetail().getCardDetail(), subscriptionData.getBody())));
+//=================================   ENDED  =========================================================
+//====================================================================================================
 
+//================================================================================================
+//===========================    EMAIL SERVICE     (2) ===============================================
+					CompletableFuture.runAsync(() ->{
+						EmailPending emailPending = emailService.addPendingEntry(new EmailPending(SUBSCRIBER_NUMBER, user.getEnrollmentDetail().getSubscriberData().getEmail(), 800, "EMAIL_PENDING"));
+						rabbitMQProducer.sendMessage(emailPending);
+					});
+					LOGGER.info("returning response entity");
 //=================================   ENDED  =========================================================
 //====================================================================================================
 
