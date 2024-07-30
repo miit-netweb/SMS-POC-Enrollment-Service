@@ -21,7 +21,6 @@ import Microservices.Enrollment_Service.Dto.BillingDetail;
 import Microservices.Enrollment_Service.Dto.CardDetail;
 import Microservices.Enrollment_Service.Dto.SubscriberData;
 import Microservices.Enrollment_Service.Dto.SubscriberDto;
-import Microservices.Enrollment_Service.Repository.PartnerRepository;
 import Microservices.Enrollment_Service.Service.AuthService;
 import Microservices.Enrollment_Service.Utils.SubscriberDtoUtils;
 import Microservices.Enrollment_Service.exception.ErrorCodes;
