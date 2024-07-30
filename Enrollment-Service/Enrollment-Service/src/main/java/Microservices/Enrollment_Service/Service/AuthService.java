@@ -1,5 +1,6 @@
 package Microservices.Enrollment_Service.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,6 +14,19 @@ import Microservices.Enrollment_Service.exception.ValidationException;
 
 @Service
 public class AuthService {
+
+	private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	private static SecureRandom random = new SecureRandom();
+
+//TODO One in a million random number might be same need to handle later
+	public static String generateRandomAlphaNumeric() {
+		StringBuilder sb = new StringBuilder(10);
+		for (int i = 0; i < 10; i++) {
+			int randomIndex = random.nextInt(CHARACTERS.length());
+			sb.append(CHARACTERS.charAt(randomIndex));
+		}
+		return sb.toString();
+	}
 
 	public static boolean isAlphaNumeric(String str) {
 		String regex = "^[a-zA-Z0-9]*$";
@@ -83,7 +97,8 @@ public class AuthService {
 			throw new ValidationException(ErrorCodes.ALPHABETIC_ERROR.getErrorCode(),
 					ErrorCodes.ALPHABETIC_ERROR.getErrorMessage(), HttpStatus.BAD_REQUEST);
 
-		} else if (String.valueOf(subscriber.getEnrollmentDetail().getSubscriberData().getPhoneNumber()).length() != 10) {
+		} else if (String.valueOf(subscriber.getEnrollmentDetail().getSubscriberData().getPhoneNumber())
+				.length() != 10) {
 			throw new ValidationException(ErrorCodes.INVALID_MOBILE_NUMBER.getErrorCode(),
 					ErrorCodes.INVALID_MOBILE_NUMBER.getErrorMessage(), HttpStatus.BAD_REQUEST);
 
@@ -116,7 +131,7 @@ public class AuthService {
 		return true;
 	}
 
-	//Removed From this service added in Partner Service
+	// Removed From this service added in Partner Service
 //	public ResponseDto checkPartnerNumber(SubscriberDto user) {
 //		PartnerDetail partnerDetail = partnerRepository
 //				.findByPartnerNumber(user.getEnrollmentDetail().getPartnerNumber());

@@ -26,6 +26,13 @@ public class SubscriptionData {
 	public void setFrequency(String frequency) {
 		this.frequency = frequency;
 	}
-	
-	
+
+	@Override
+	public String toString() {
+		return "SubscriptionData{" +
+				"subtypeNumber=" + subtypeNumber +
+				", pricingRoutine='" + pricingRoutine + '\'' +
+				", frequency='" + frequency + '\'' +
+				'}';
+	}
 }

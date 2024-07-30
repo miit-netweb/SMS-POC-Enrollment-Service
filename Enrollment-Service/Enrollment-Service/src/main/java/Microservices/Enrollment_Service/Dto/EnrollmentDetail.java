@@ -16,6 +16,7 @@ public class EnrollmentDetail {
 	public EnrollmentDetail() {
     }
 
+
     public long getPartnerNumber() {
         return partnerNumber;
     }
