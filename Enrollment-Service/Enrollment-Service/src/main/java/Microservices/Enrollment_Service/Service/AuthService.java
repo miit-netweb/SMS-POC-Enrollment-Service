@@ -5,18 +5,28 @@ import java.time.LocalDate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import Microservices.Enrollment_Service.Entity.PersonalDetails;
+import Microservices.Enrollment_Service.Entity.Subscriber;
+import Microservices.Enrollment_Service.Repository.PersonalDetailsRepository;
+import Microservices.Enrollment_Service.Repository.SubscriberRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import Microservices.Enrollment_Service.Dto.SubscriberDto;
 import Microservices.Enrollment_Service.exception.ErrorCodes;
 import Microservices.Enrollment_Service.exception.ValidationException;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
 
 	private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 	private static SecureRandom random = new SecureRandom();
+	@Autowired
+	private SubscriberRepository subscriberRepository;
+	@Autowired
+	private PersonalDetailsRepository personalDetailsRepository;
 
 //TODO One in a million random number might be same need to handle later
 	public static String generateRandomAlphaNumeric() {
@@ -129,6 +139,24 @@ public class AuthService {
 					ErrorCodes.EXPIRED_CARD.getErrorMessage(), HttpStatus.BAD_REQUEST);
 		}
 		return true;
+	}
+
+	@Transactional
+	public Subscriber enrollNewSubscriber(SubscriberDto user, String subscriberNumber) {
+		PersonalDetails save = personalDetailsRepository.save(new PersonalDetails(user.getEnrollmentDetail().getSubscriberData().getFirstName(),
+				user.getEnrollmentDetail().getSubscriberData().getLastName(),
+				user.getEnrollmentDetail().getSubscriberData().getPhoneNumber(),
+				user.getEnrollmentDetail().getSubscriberData().getEmail(),
+				user.getEnrollmentDetail().getSubscriberData().getBillingDetail().getAddress(),
+				user.getEnrollmentDetail().getSubscriberData().getBillingDetail().getCardDetail().getCardNumber(),
+				user.getEnrollmentDetail().getSubscriberData().getBillingDetail().getCardDetail().getCardType(),
+				user.getEnrollmentDetail().getSubscriberData().getBillingDetail().getCardDetail().getCardHolder(),
+				user.getEnrollmentDetail().getSubscriberData().getBillingDetail().getCardDetail().getCardExpiry()));
+		Subscriber subscriber = new Subscriber(subscriberNumber,
+				user.getEnrollmentDetail().getPartnerNumber(),
+				user.getEnrollmentDetail().getSubscriptionData().getSubtypeNumber(),save
+				);
+				return subscriberRepository.save(subscriber);
 	}
 
 	// Removed From this service added in Partner Service

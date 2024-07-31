@@ -20,8 +20,7 @@ public class Subscriber {
     public Subscriber() {
     }
 
-    public Subscriber(Long memID, String subscriberNumber, long partnerNumber, long subtypeNumber, PersonalDetails personalDetails) {
-        this.memID = memID;
+    public Subscriber(String subscriberNumber, long partnerNumber, long subtypeNumber, PersonalDetails personalDetails) {
         this.subscriberNumber = subscriberNumber;
         this.partnerNumber = partnerNumber;
         this.subtypeNumber = subtypeNumber;

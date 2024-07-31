@@ -6,6 +6,7 @@ import Microservices.Enrollment_Service.Dto.*;
 import Microservices.Enrollment_Service.Entity.BillingPending;
 import Microservices.Enrollment_Service.Entity.EmailPending;
 import Microservices.Enrollment_Service.Entity.PersonalDetails;
+import Microservices.Enrollment_Service.Entity.Subscriber;
 import Microservices.Enrollment_Service.Publisher.BillingProducer;
 import Microservices.Enrollment_Service.Service.BillingService;
 import Microservices.Enrollment_Service.Service.EmailService;
@@ -78,7 +79,7 @@ public class EnrollmentController {
 
 				if (Boolean.TRUE.equals(thirdPartyResponse.getBody())) {
 
-
+					final Subscriber ENROLLED_SUBSCRIBER = service.enrollNewSubscriber(user, SUBSCRIBER_NUMBER);
 
 //================================================================================================
 //===========================    BILLING SERVICE    (1)  ===============================================
@@ -107,7 +108,7 @@ public class EnrollmentController {
 //====================================================================================================
 
 
-					return ResponseEntity.ok(tokenGenerationResponseDto);
+					return ResponseEntity.ok(new EnrolledSubscriberDto(tokenGenerationResponseDto.getBody().toString(),ENROLLED_SUBSCRIBER));
 				} else {
 					LOGGER.error("Failed to create Subscriber at Third Party Entity with Subscriber Number->{}",
 							SUBSCRIBER_NUMBER);
