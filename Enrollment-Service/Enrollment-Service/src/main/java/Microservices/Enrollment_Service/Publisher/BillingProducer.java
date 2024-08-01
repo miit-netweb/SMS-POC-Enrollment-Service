@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class BillingProducer {
 
-
     private KafkaTemplate<String, String> kafkaTemplate;
 
     public BillingProducer(KafkaTemplate<String, String> kafkaTemplate) {
@@ -21,11 +20,8 @@ public class BillingProducer {
     }
 
     public void sendMessage(BillingPending billingPending){
-
         ObjectMapper objectMapper = new ObjectMapper();
-
         objectMapper.findAndRegisterModules();
-
         try {
             // Convert POJO to JSON string
             String jsonString = objectMapper.writeValueAsString(billingPending);

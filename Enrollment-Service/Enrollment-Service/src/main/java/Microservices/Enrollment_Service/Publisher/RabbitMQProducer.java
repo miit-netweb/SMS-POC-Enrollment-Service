@@ -25,7 +25,6 @@ public class RabbitMQProducer {
     @Async
     public void sendMessage(EmailPending message){
         System.out.println(String.format("Message sent -> %s",message));
-        System.out.println(Thread.currentThread().getName());
         try {
             rabbitTemplate.convertAndSend(EXCHANGE_NAME,ROUTING_KEY,message);
         } catch (Exception e){

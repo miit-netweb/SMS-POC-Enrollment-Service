@@ -60,7 +60,6 @@ public class EnrollmentController {
 					new PartnerServiceDto(user.getPartnerCredential(),
 							user.getEnrollmentDetail().getSubscriptionData()),
 					user.getEnrollmentDetail().getPartnerNumber());
-			System.out.println(subscriptionData);
 			if (subscriptionData.getBody() != null) {
 				LOGGER.info("partner number-> {} validated successfully",
 						user.getEnrollmentDetail().getPartnerNumber());
@@ -78,9 +77,7 @@ public class EnrollmentController {
 
 
 				if (Boolean.TRUE.equals(thirdPartyResponse.getBody())) {
-
 					final Subscriber ENROLLED_SUBSCRIBER = service.enrollNewSubscriber(user, SUBSCRIBER_NUMBER);
-
 //================================================================================================
 //===========================    BILLING SERVICE    (1)  ===============================================
 
@@ -126,5 +123,7 @@ public class EnrollmentController {
 			return ResponseEntity.badRequest().body(service.ValidateResponse(user));
 		}
 	}
+
+
 
 }
