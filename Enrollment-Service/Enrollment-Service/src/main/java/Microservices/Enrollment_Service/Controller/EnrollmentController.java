@@ -68,6 +68,7 @@ public class EnrollmentController {
 					new PartnerServiceDto(user.getPartnerCredential(),
 							user.getEnrollmentDetail().getSubscriptionData()),
 					user.getEnrollmentDetail().getPartnerNumber());
+
 			}catch(RuntimeException ex) {
 			    LOGGER.error("Original exception: {}", ex.getMessage());
 				ExceptionResponse errorResponse = ExceptionResponse.fromJson(ex.getMessage());
@@ -77,6 +78,7 @@ public class EnrollmentController {
 			}
 			
 			System.out.println(subscriptionData);
+
 			if (subscriptionData.getBody() != null) {
 				LOGGER.info("partner number-> {} validated successfully",
 						user.getEnrollmentDetail().getPartnerNumber());
@@ -94,9 +96,10 @@ public class EnrollmentController {
 
 
 				if (Boolean.TRUE.equals(thirdPartyResponse.getBody())) {
-
 					final Subscriber ENROLLED_SUBSCRIBER = service.enrollNewSubscriber(user, SUBSCRIBER_NUMBER);
+
 					LOGGER.info("Generated Subscriber Number -> {}",SUBSCRIBER_NUMBER);
+
 
 //================================================================================================
 //===========================    BILLING SERVICE    (1)  ===============================================
@@ -141,5 +144,7 @@ public class EnrollmentController {
 			throw new ValidationException(ErrorCodes.USER_VALIDATION_FAILED.getErrorCode(), ErrorCodes.USER_VALIDATION_FAILED.getErrorMessage(), HttpStatus.BAD_REQUEST);
 		}
 	}
+
+
 
 }
