@@ -2,25 +2,31 @@ package Microservices.Enrollment_Service.Controller;
 
 import java.util.concurrent.CompletableFuture;
 
-import Microservices.Enrollment_Service.Dto.*;
-import Microservices.Enrollment_Service.Entity.BillingPending;
-import Microservices.Enrollment_Service.Entity.EmailPending;
-import Microservices.Enrollment_Service.Entity.PersonalDetails;
-import Microservices.Enrollment_Service.Entity.Subscriber;
-import Microservices.Enrollment_Service.Publisher.BillingProducer;
-import Microservices.Enrollment_Service.Service.BillingService;
-import Microservices.Enrollment_Service.Service.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import Microservices.Enrollment_Service.Dto.ExceptionResponse;
+import Microservices.Enrollment_Service.Dto.PartnerServiceDto;
+import Microservices.Enrollment_Service.Dto.SubscriberDto;
+import Microservices.Enrollment_Service.Dto.SubscriptionData;
+import Microservices.Enrollment_Service.Dto.ThirdPartyEntityDto;
+import Microservices.Enrollment_Service.Entity.BillingPending;
+import Microservices.Enrollment_Service.Entity.EmailPending;
+import Microservices.Enrollment_Service.Entity.Subscriber;
+import Microservices.Enrollment_Service.Publisher.BillingProducer;
 import Microservices.Enrollment_Service.Publisher.RabbitMQProducer;
 import Microservices.Enrollment_Service.Service.AuthService;
+import Microservices.Enrollment_Service.Service.BillingService;
+import Microservices.Enrollment_Service.Service.EmailService;
+import Microservices.Enrollment_Service.exception.ErrorCodes;
+import Microservices.Enrollment_Service.exception.ValidationException;
 import Microservices.Enrollment_Service.proxy.JwtServerProxy;
 import Microservices.Enrollment_Service.proxy.PartnerServiceProxy;
 import Microservices.Enrollment_Service.proxy.ThirdPartyEntityProxy;
@@ -50,16 +56,29 @@ public class EnrollmentController {
 
 
 	@PostMapping("/subscriber")
-	public ResponseEntity<?> addNewUser(@RequestBody SubscriberDto user) {
+	public ResponseEntity<?> addNewUser(@RequestBody SubscriberDto user) throws Exception {
 		LOGGER.info("Started validating user");
 		if (service.ValidateResponse(user)) {
 			LOGGER.info("Validation successful for user of partner number-> {}",
 					user.getEnrollmentDetail().getPartnerNumber());
 
-			ResponseEntity<SubscriptionData> subscriptionData = partnerProxy.validatePartner(
+			final ResponseEntity<SubscriptionData> subscriptionData;
+			try {
+			subscriptionData = partnerProxy.validatePartner(
 					new PartnerServiceDto(user.getPartnerCredential(),
 							user.getEnrollmentDetail().getSubscriptionData()),
 					user.getEnrollmentDetail().getPartnerNumber());
+
+			}catch(RuntimeException ex) {
+			    LOGGER.error("Original exception: {}", ex.getMessage());
+				ExceptionResponse errorResponse = ExceptionResponse.fromJson(ex.getMessage());
+				throw new ValidationException(errorResponse.getErrorcode(),
+						errorResponse.getMessage(),
+						errorResponse.getStatus());
+			}
+			
+			System.out.println(subscriptionData);
+
 			if (subscriptionData.getBody() != null) {
 				LOGGER.info("partner number-> {} validated successfully",
 						user.getEnrollmentDetail().getPartnerNumber());
@@ -78,6 +97,10 @@ public class EnrollmentController {
 
 				if (Boolean.TRUE.equals(thirdPartyResponse.getBody())) {
 					final Subscriber ENROLLED_SUBSCRIBER = service.enrollNewSubscriber(user, SUBSCRIBER_NUMBER);
+
+					LOGGER.info("Generated Subscriber Number -> {}",SUBSCRIBER_NUMBER);
+
+
 //================================================================================================
 //===========================    BILLING SERVICE    (1)  ===============================================
 
@@ -105,22 +128,20 @@ public class EnrollmentController {
 //====================================================================================================
 
 
-					return ResponseEntity.ok(new EnrolledSubscriberDto(tokenGenerationResponseDto.getBody().toString(),ENROLLED_SUBSCRIBER));
+					return ResponseEntity.ok("Subscriber Enrolled Successfully");
 				} else {
 					LOGGER.error("Failed to create Subscriber at Third Party Entity with Subscriber Number->{}",
 							SUBSCRIBER_NUMBER);
-					return ResponseEntity.badRequest().body("Failed to create Subscriber at Third Party Entity");
+					throw new ValidationException(ErrorCodes.SUBSCRIBER_CREATION_FAILED.getErrorCode(), ErrorCodes.SUBSCRIBER_CREATION_FAILED.getErrorMessage(), HttpStatus.BAD_REQUEST);
 				}
 			} else {
 				LOGGER.error("Invalid partner number-> {} for user enrollment",
 						user.getEnrollmentDetail().getPartnerNumber());
-
-				// Todo add exception handling and error response
-				return ResponseEntity.badRequest().body("Partner Validation failed");
+				throw new ValidationException(ErrorCodes.INVALID_PARTNER.getErrorCode(), ErrorCodes.INVALID_PARTNER.getErrorMessage(), HttpStatus.BAD_REQUEST);
 			}
 		} else {
 			LOGGER.error("Validation failed for user");
-			return ResponseEntity.badRequest().body(service.ValidateResponse(user));
+			throw new ValidationException(ErrorCodes.USER_VALIDATION_FAILED.getErrorCode(), ErrorCodes.USER_VALIDATION_FAILED.getErrorMessage(), HttpStatus.BAD_REQUEST);
 		}
 	}
 

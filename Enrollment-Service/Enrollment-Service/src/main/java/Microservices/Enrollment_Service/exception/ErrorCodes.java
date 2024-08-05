@@ -16,7 +16,13 @@ public enum ErrorCodes {
 	NULL_CARD_DETAILS(1012,"Card detail is null"),
 	INVALID_CARD_NUMBER(1013,"Card number is invalid"),
 	EXPIRED_CARD(1014,"Card has expired"),
-	INVALID_MOBILE_NUMBER(1019,"Mobile number should be 10 digit");
+	INVALID_MOBILE_NUMBER(1019,"Mobile number should be 10 digit"),
+	DUPLICATE_ENTRY(3333,"Duplicate email and mobile number"),
+	INVALID_UUID(2025,"Invalid UUId"),
+	INVALID_PARTNER(2026,"Partner Validation Failed"),
+	SUBSCRIBER_CREATION_FAILED(2027,"Failed to create Subscriber at Third Party Entity"),
+	USER_VALIDATION_FAILED(2028,"Validation failed for user");
+	
 	
 	
 	private int errorCode;

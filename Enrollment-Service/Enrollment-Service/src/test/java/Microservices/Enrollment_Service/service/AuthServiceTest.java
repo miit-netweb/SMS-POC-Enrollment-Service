@@ -29,8 +29,6 @@ import Microservices.Enrollment_Service.exception.ValidationException;
 @ExtendWith(MockitoExtension.class)
 public class AuthServiceTest {
 
-	@Mock
-	PartnerRepository partnerRepository;
 
 	@InjectMocks
 	AuthService service;

@@ -5,18 +5,22 @@ import java.time.LocalDate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import Microservices.Enrollment_Service.Dto.ExceptionResponse;
+import Microservices.Enrollment_Service.Dto.SubscriberDto;
 import Microservices.Enrollment_Service.Entity.PersonalDetails;
 import Microservices.Enrollment_Service.Entity.Subscriber;
 import Microservices.Enrollment_Service.Repository.PersonalDetailsRepository;
 import Microservices.Enrollment_Service.Repository.SubscriberRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-
-import Microservices.Enrollment_Service.Dto.SubscriberDto;
+import Microservices.Enrollment_Service.exception.DuplicateEntryException;
 import Microservices.Enrollment_Service.exception.ErrorCodes;
 import Microservices.Enrollment_Service.exception.ValidationException;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
@@ -28,7 +32,8 @@ public class AuthService {
 	@Autowired
 	private PersonalDetailsRepository personalDetailsRepository;
 
-//TODO One in a million random number might be same need to handle later
+	Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
+
 	public static String generateRandomAlphaNumeric() {
 		StringBuilder sb = new StringBuilder(10);
 		for (int i = 0; i < 10; i++) {
@@ -84,10 +89,15 @@ public class AuthService {
 				|| subscriber.getPartnerCredential().getPartnerUuid().isEmpty()) {
 			throw new ValidationException(ErrorCodes.NULL_PARTNER_UUID.getErrorCode(),
 					ErrorCodes.NULL_PARTNER_UUID.getErrorMessage(), HttpStatus.BAD_REQUEST);
+		} else if (subscriber.getPartnerCredential().getPartnerUuid().length() != 36) {
+			throw new ValidationException(ErrorCodes.INVALID_UUID.getErrorCode(),
+					ErrorCodes.INVALID_UUID.getErrorMessage(), HttpStatus.BAD_REQUEST);
+
 		} else if (!isAlphaNumeric(subscriber.getPartnerCredential().getPartnerSecret())
 				|| !isUUID(subscriber.getPartnerCredential().getPartnerUuid())) {
 			throw new ValidationException(ErrorCodes.ALPHANUMERIC_ERROR.getErrorCode(),
 					ErrorCodes.ALPHANUMERIC_ERROR.getErrorMessage(), HttpStatus.BAD_REQUEST);
+
 		} else if (subscriber.getEnrollmentDetail() == null) {
 			throw new ValidationException(ErrorCodes.NULL_ENROLLMENT_DATA.getErrorCode(),
 					ErrorCodes.NULL_ENROLLMENT_DATA.getErrorMessage(), HttpStatus.BAD_REQUEST);
@@ -143,42 +153,38 @@ public class AuthService {
 
 	@Transactional
 	public Subscriber enrollNewSubscriber(SubscriberDto user, String subscriberNumber) {
-		PersonalDetails save = personalDetailsRepository.save(new PersonalDetails(user.getEnrollmentDetail().getSubscriberData().getFirstName(),
-				user.getEnrollmentDetail().getSubscriberData().getLastName(),
-				user.getEnrollmentDetail().getSubscriberData().getPhoneNumber(),
-				user.getEnrollmentDetail().getSubscriberData().getEmail(),
-				user.getEnrollmentDetail().getSubscriberData().getBillingDetail().getAddress(),
-				user.getEnrollmentDetail().getSubscriberData().getBillingDetail().getCardDetail().getCardNumber(),
-				user.getEnrollmentDetail().getSubscriberData().getBillingDetail().getCardDetail().getCardType(),
-				user.getEnrollmentDetail().getSubscriberData().getBillingDetail().getCardDetail().getCardHolder(),
-				user.getEnrollmentDetail().getSubscriberData().getBillingDetail().getCardDetail().getCardExpiry()));
-		Subscriber subscriber = new Subscriber(subscriberNumber,
-				user.getEnrollmentDetail().getPartnerNumber(),
-				user.getEnrollmentDetail().getSubscriptionData().getSubtypeNumber(),save
-				);
-				return subscriberRepository.save(subscriber);
+		final PersonalDetails personalDetails;
+
+		try {
+			personalDetails = personalDetailsRepository.save(new PersonalDetails(
+					user.getEnrollmentDetail().getSubscriberData().getFirstName(),
+					user.getEnrollmentDetail().getSubscriberData().getLastName(),
+					user.getEnrollmentDetail().getSubscriberData().getPhoneNumber(),
+					user.getEnrollmentDetail().getSubscriberData().getEmail(),
+					user.getEnrollmentDetail().getSubscriberData().getBillingDetail().getAddress(),
+					user.getEnrollmentDetail().getSubscriberData().getBillingDetail().getCardDetail().getCardNumber(),
+					user.getEnrollmentDetail().getSubscriberData().getBillingDetail().getCardDetail().getCardType(),
+					user.getEnrollmentDetail().getSubscriberData().getBillingDetail().getCardDetail().getCardHolder(),
+					user.getEnrollmentDetail().getSubscriberData().getBillingDetail().getCardDetail().getCardExpiry()));
+		} catch (RuntimeException ex) {
+			LOGGER.error("Original exception: {}", ex.getMessage());
+			String errorMessage = ExceptionResponse.parseErrorMessage(ex.getMessage());
+			throw new DuplicateEntryException(ErrorCodes.DUPLICATE_ENTRY.getErrorCode(), errorMessage,
+					HttpStatus.BAD_REQUEST);
+		}
+
+		try {
+			Subscriber subscriber = new Subscriber(subscriberNumber, user.getEnrollmentDetail().getPartnerNumber(),
+					user.getEnrollmentDetail().getSubscriptionData().getSubtypeNumber(), personalDetails);
+			return subscriberRepository.save(subscriber);
+
+		} catch (RuntimeException ex) {
+			LOGGER.error("Original exception: {}", ex.getMessage());
+			throw new DuplicateEntryException(ErrorCodes.DUPLICATE_ENTRY.getErrorCode(),
+					"Some issue Occured While Creating Your Subscriber Number,Please Try Again",
+					HttpStatus.BAD_REQUEST);
+
+		}
+
 	}
-
-	// Removed From this service added in Partner Service
-//	public ResponseDto checkPartnerNumber(SubscriberDto user) {
-//		PartnerDetail partnerDetail = partnerRepository
-//				.findByPartnerNumber(user.getEnrollmentDetail().getPartnerNumber());
-//		if (partnerDetail == null) {
-//			throw new ValidationException(ErrorCodes.NO_PARTNER_EXIST.getErrorCode(),
-//					ErrorCodes.NO_PARTNER_EXIST.getErrorMessage(), HttpStatus.BAD_REQUEST);
-//
-//		} else if (!partnerDetail.getPartnerUuid().equals(user.getPartnerCredential().getPartnerUuid())) {
-//
-//			throw new ValidationException(ErrorCodes.INVALID_UUID.getErrorCode(),
-//					ErrorCodes.INVALID_UUID.getErrorMessage(), HttpStatus.BAD_REQUEST);
-//
-//		} else if (!partnerDetail.getPartnerSecret().equals(user.getPartnerCredential().getPartnerSecret())) {
-//
-//			throw new ValidationException(ErrorCodes.INVALID_SECRET_KEY.getErrorCode(),
-//					ErrorCodes.INVALID_SECRET_KEY.getErrorMessage(), HttpStatus.BAD_REQUEST);
-//
-//		}
-//		return null;
-//	}
-
 }
