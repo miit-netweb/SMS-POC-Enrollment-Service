@@ -56,11 +56,21 @@ public class V2EnrollmentController {
             LOGGER.info("Validation successful for user of partner number-> {}",
                     user.getEnrollmentDetail().getPartnerNumber());
 
-            ResponseEntity<SubscriptionData> subscriptionData = partnerProxy.validatePartner(
-                    new PartnerServiceDto(user.getPartnerCredential(),
-                            user.getEnrollmentDetail().getSubscriptionData()),
-                    user.getEnrollmentDetail().getPartnerNumber());
+         final ResponseEntity<SubscriptionData> subscriptionData;
+			try {
+			subscriptionData = partnerProxy.validatePartner(
+					new PartnerServiceDto(user.getPartnerCredential(),
+							user.getEnrollmentDetail().getSubscriptionData()),
+					user.getEnrollmentDetail().getPartnerNumber());
 
+			}catch(RuntimeException ex) {
+			    LOGGER.error("Original exception: {}", ex.getMessage());
+				ExceptionResponse errorResponse = ExceptionResponse.fromJson(ex.getMessage());
+				throw new ValidationException(errorResponse.getErrorcode(),
+						errorResponse.getMessage(),
+						errorResponse.getStatus());
+			}
+			
             if (subscriptionData.getBody() != null) {
                 LOGGER.info("partner number-> {} validated successfully",
                         user.getEnrollmentDetail().getPartnerNumber());
