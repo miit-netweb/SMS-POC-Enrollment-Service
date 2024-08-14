@@ -2,9 +2,12 @@ package Microservices.Enrollment_Service.Service;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import Microservices.Enrollment_Service.Dto.EnrollmentStatus;
+import Microservices.Enrollment_Service.Publisher.EnrollmentStatusProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +34,8 @@ public class AuthService {
 	private SubscriberRepository subscriberRepository;
 	@Autowired
 	private PersonalDetailsRepository personalDetailsRepository;
+	@Autowired
+	private EnrollmentStatusProducer enrollmentStatusProducer;
 
 	Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
 
@@ -167,6 +172,9 @@ public class AuthService {
 					user.getEnrollmentDetail().getSubscriberData().getBillingDetail().getCardDetail().getCardHolder(),
 					user.getEnrollmentDetail().getSubscriberData().getBillingDetail().getCardDetail().getCardExpiry()));
 		} catch (RuntimeException ex) {
+			CompletableFuture.runAsync(()->{
+				enrollmentStatusProducer.sendMessage(new EnrollmentStatus(LocalDate.now().toString(),"ENROLLMENT-FAILURE"));
+			});
 			LOGGER.error("Original exception: {}", ex.getMessage());
 			String errorMessage = ExceptionResponse.parseErrorMessage(ex.getMessage());
 			throw new DuplicateEntryException(ErrorCodes.DUPLICATE_ENTRY.getErrorCode(), errorMessage,
@@ -176,9 +184,15 @@ public class AuthService {
 		try {
 			Subscriber subscriber = new Subscriber(subscriberNumber, user.getEnrollmentDetail().getPartnerNumber(),
 					user.getEnrollmentDetail().getSubscriptionData().getSubtypeNumber(), personalDetails);
+			CompletableFuture.runAsync(()->{
+				enrollmentStatusProducer.sendMessage(new EnrollmentStatus(LocalDate.now().toString(),"ENROLLMENT-SUCCESS"));
+			});
 			return subscriberRepository.save(subscriber);
 
 		} catch (RuntimeException ex) {
+			CompletableFuture.runAsync(()->{
+				enrollmentStatusProducer.sendMessage(new EnrollmentStatus(LocalDate.now().toString(),"ENROLLMENT-FAILURE"));
+			});
 			LOGGER.error("Original exception: {}", ex.getMessage());
 			throw new DuplicateEntryException(ErrorCodes.DUPLICATE_ENTRY.getErrorCode(),
 					"Some issue Occured While Creating Your Subscriber Number,Please Try Again",

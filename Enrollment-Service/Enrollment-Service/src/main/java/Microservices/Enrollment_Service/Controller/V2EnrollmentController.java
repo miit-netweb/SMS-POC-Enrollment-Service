@@ -9,6 +9,7 @@ import Microservices.Enrollment_Service.Publisher.RabbitMQProducer;
 import Microservices.Enrollment_Service.Service.AuthService;
 import Microservices.Enrollment_Service.Service.BillingService;
 import Microservices.Enrollment_Service.Service.EmailService;
+import Microservices.Enrollment_Service.exception.ValidationException;
 import Microservices.Enrollment_Service.proxy.JwtServerProxy;
 import Microservices.Enrollment_Service.proxy.PartnerServiceProxy;
 import Microservices.Enrollment_Service.proxy.ThirdPartyEntityProxy;
@@ -20,6 +21,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
@@ -47,7 +49,7 @@ public class V2EnrollmentController {
 
 
     @PostMapping("/subscriber")
-    public ResponseEntity<?> addNewUser(@RequestBody SubscriberDto user, @RequestHeader(value = "Authorization", required = false) String token) {
+    public ResponseEntity<?> addNewUser(@RequestBody SubscriberDto user, @RequestHeader(value = "Authorization", required = false) String token) throws Exception {
         LOGGER.info("Started validating user");
 
         ResponseEntity<?> responseEntity = jwtServerProxy.validateToken(token);
@@ -85,6 +87,10 @@ public class V2EnrollmentController {
 
                 if (Boolean.TRUE.equals(thirdPartyResponse.getBody())) {
                     final Subscriber ENROLLED_SUBSCRIBER = service.enrollNewSubscriber(user, SUBSCRIBER_NUMBER);
+
+
+
+
 //================================================================================================
 //===========================    BILLING SERVICE    (1)  ===============================================
                     // ADD in Billing Pending Table   AND   KAFKA :
