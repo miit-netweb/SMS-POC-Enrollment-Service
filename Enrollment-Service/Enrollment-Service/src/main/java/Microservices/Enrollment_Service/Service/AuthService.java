@@ -84,25 +84,26 @@ public class AuthService {
 		if (subscriber == null) {
 			throw new ValidationException(ErrorCodes.NULL_SUBSCRIBER_ERROR.getErrorCode(),
 					ErrorCodes.NULL_SUBSCRIBER_ERROR.getErrorMessage(), HttpStatus.BAD_REQUEST);
-		} else if (subscriber.getPartnerCredential() == null) {
-			throw new ValidationException(ErrorCodes.NULL_PARTNER_DATA.getErrorCode(),
-					ErrorCodes.NULL_PARTNER_DATA.getErrorMessage(), HttpStatus.BAD_REQUEST);
-		} else if (subscriber.getPartnerCredential().getPartnerSecret() == null
-				|| subscriber.getPartnerCredential().getPartnerSecret().isEmpty()) {
-			throw new ValidationException(ErrorCodes.NULL_PARTNER_SECRET.getErrorCode(),
-					ErrorCodes.NULL_PARTNER_SECRET.getErrorMessage(), HttpStatus.BAD_REQUEST);
-		} else if (subscriber.getPartnerCredential().getPartnerUuid() == null
-				|| subscriber.getPartnerCredential().getPartnerUuid().isEmpty()) {
-			throw new ValidationException(ErrorCodes.NULL_PARTNER_UUID.getErrorCode(),
-					ErrorCodes.NULL_PARTNER_UUID.getErrorMessage(), HttpStatus.BAD_REQUEST);
-		} else if (subscriber.getPartnerCredential().getPartnerUuid().length() != 36) {
-			throw new ValidationException(ErrorCodes.INVALID_UUID.getErrorCode(),
-					ErrorCodes.INVALID_UUID.getErrorMessage(), HttpStatus.BAD_REQUEST);
-
-		} else if (!isAlphaNumeric(subscriber.getPartnerCredential().getPartnerSecret())
-				|| !isUUID(subscriber.getPartnerCredential().getPartnerUuid())) {
-			throw new ValidationException(ErrorCodes.ALPHANUMERIC_ERROR.getErrorCode(),
-					ErrorCodes.ALPHANUMERIC_ERROR.getErrorMessage(), HttpStatus.BAD_REQUEST);
+			
+//		} else if (subscriber.getPartnerCredential() == null) {
+//			throw new ValidationException(ErrorCodes.NULL_PARTNER_DATA.getErrorCode(),
+//					ErrorCodes.NULL_PARTNER_DATA.getErrorMessage(), HttpStatus.BAD_REQUEST);
+//		} else if (subscriber.getPartnerCredential().getPartnerSecret() == null
+//				|| subscriber.getPartnerCredential().getPartnerSecret().isEmpty()) {
+//			throw new ValidationException(ErrorCodes.NULL_PARTNER_SECRET.getErrorCode(),
+//					ErrorCodes.NULL_PARTNER_SECRET.getErrorMessage(), HttpStatus.BAD_REQUEST);
+//		} else if (subscriber.getPartnerCredential().getPartnerUuid() == null
+//				|| subscriber.getPartnerCredential().getPartnerUuid().isEmpty()) {
+//			throw new ValidationException(ErrorCodes.NULL_PARTNER_UUID.getErrorCode(),
+//					ErrorCodes.NULL_PARTNER_UUID.getErrorMessage(), HttpStatus.BAD_REQUEST);
+//		} else if (subscriber.getPartnerCredential().getPartnerUuid().length() != 36) {
+//			throw new ValidationException(ErrorCodes.INVALID_UUID.getErrorCode(),
+//					ErrorCodes.INVALID_UUID.getErrorMessage(), HttpStatus.BAD_REQUEST);
+//
+//		} else if (!isAlphaNumeric(subscriber.getPartnerCredential().getPartnerSecret())
+//				|| !isUUID(subscriber.getPartnerCredential().getPartnerUuid())) {
+//			throw new ValidationException(ErrorCodes.ALPHANUMERIC_ERROR.getErrorCode(),
+//					ErrorCodes.ALPHANUMERIC_ERROR.getErrorMessage(), HttpStatus.BAD_REQUEST);
 
 		} else if (subscriber.getEnrollmentDetail() == null) {
 			throw new ValidationException(ErrorCodes.NULL_ENROLLMENT_DATA.getErrorCode(),

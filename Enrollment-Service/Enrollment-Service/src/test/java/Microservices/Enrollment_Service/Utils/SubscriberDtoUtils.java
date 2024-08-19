@@ -39,7 +39,7 @@ public class SubscriberDtoUtils {
 
         // Setting mocked objects into SubscriberDto
         subscriberDto.setEnrollmentDetail(enrollmentDetailMock);
-        subscriberDto.setPartnerCredential(partnerCredentialMock);
+        //subscriberDto.setPartnerCredential(partnerCredentialMock);
 
         return subscriberDto;
     }
