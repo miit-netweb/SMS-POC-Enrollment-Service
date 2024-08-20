@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 public interface JwtServerProxy {
     @GetMapping("generate/token/{partner_number}")
     public ResponseEntity<?> tokenGenerationForPartner(@PathVariable("partner_number") long partnerNumber);
-
+    
     @GetMapping("validate/token/")
     public ResponseEntity<?> validateToken(@RequestHeader(value = "Authorization", required = false) String token);
 
