@@ -21,7 +21,8 @@ public enum ErrorCodes {
 	INVALID_UUID(2025,"Invalid UUId"),
 	INVALID_PARTNER(2026,"Partner Validation Failed"),
 	SUBSCRIBER_CREATION_FAILED(2027,"Failed to create Subscriber at Third Party Entity"),
-	USER_VALIDATION_FAILED(2028,"Validation failed for user");
+	USER_VALIDATION_FAILED(2028,"Validation failed for user"),
+	RATELIMIT_EXCEEDED(429,"Your Limit of Request Exceeded, Please try after some time");
 	
 	
 	

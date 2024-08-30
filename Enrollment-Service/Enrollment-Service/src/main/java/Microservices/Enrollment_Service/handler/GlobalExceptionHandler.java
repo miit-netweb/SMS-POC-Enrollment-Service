@@ -10,8 +10,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import Microservices.Enrollment_Service.Dto.ErrorIDGenerator;
 import Microservices.Enrollment_Service.Dto.ExceptionResponse;
 import Microservices.Enrollment_Service.exception.DuplicateEntryException;
+import Microservices.Enrollment_Service.exception.ErrorCodes;
 import Microservices.Enrollment_Service.exception.UnAuthorizedUserException;
 import Microservices.Enrollment_Service.exception.ValidationException;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -48,6 +50,17 @@ public class GlobalExceptionHandler {
 		response.setTimestamp(LocalTime.now().toString());
 		return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
 	}
+	
+	@ExceptionHandler(RequestNotPermitted.class)
+    public ResponseEntity<ExceptionResponse> handleRateLimitExceeded(RequestNotPermitted ex) {
+		ExceptionResponse response=new ExceptionResponse();
+		response.setErrorid(ErrorIDGenerator.getErrorId());
+		response.setErrorcode(ErrorCodes.RATELIMIT_EXCEEDED.getErrorCode());
+		response.setMessage(ErrorCodes.RATELIMIT_EXCEEDED.getErrorMessage());
+		response.setStatus(HttpStatus.BANDWIDTH_LIMIT_EXCEEDED);
+		response.setTimestamp(LocalTime.now().toString());
+		return new ResponseEntity<>(response,HttpStatus.BANDWIDTH_LIMIT_EXCEEDED);
+    }
 	
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<?> handleGenericException(Exception ex){

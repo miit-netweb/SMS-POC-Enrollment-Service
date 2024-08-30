@@ -34,6 +34,7 @@ import Microservices.Enrollment_Service.exception.ValidationException;
 import Microservices.Enrollment_Service.proxy.JwtServerProxy;
 import Microservices.Enrollment_Service.proxy.PartnerServiceProxy;
 import Microservices.Enrollment_Service.proxy.ThirdPartyEntityProxy;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 
 @RestController
 @RequestMapping("/v2/enroll")
@@ -58,6 +59,7 @@ public class V2EnrollmentController {
 	@Autowired
 	private BillingService billingService;
 
+	@RateLimiter(name = "enrollmentService")
 	@PostMapping("/subscriber")
 	public ResponseEntity<?> addNewUser(@RequestBody SubscriberDto user,
 			@RequestHeader(value = "Authorization", required = false) String token) throws Exception {
@@ -65,28 +67,27 @@ public class V2EnrollmentController {
 
 		final ResponseEntity<?> responseEntity;
 		try {
-			// Token Service Call
+			// Token Service Call to validate Token
 			responseEntity = jwtServerProxy.validateToken(token);
 		} catch (RuntimeException ex) {
 			LOGGER.error("Original exception: {}", ex.getMessage());
-			ExceptionResponse errorResponse = ExceptionResponse.fromJson(ex.getMessage());
-			throw new ValidationException(errorResponse.getErrorcode(), errorResponse.getMessage(),
-					errorResponse.getStatus());
+			throw new ValidationException(401, "Invalid Token",HttpStatus.BAD_REQUEST);
 		}
-
+         //Claims Check to verify token with partner number
 		Object body = responseEntity.getBody();
 		Map<String, Object> responseBody = (Map<String, Object>) body;
 		String partnerNumber = Optional.ofNullable(responseBody).map(map -> (String) map.get("partnerNumber"))
 				.orElse(null);
 		Long partnerNumberFromUser = user.getEnrollmentDetail().getPartnerNumber();
 		if (partnerNumber != null && partnerNumber.equals(partnerNumberFromUser.toString())) {
+			//validating user details
 			if (service.ValidateResponse(user)) {
 				LOGGER.info("Validation successful for user of partner number-> {}",
 						user.getEnrollmentDetail().getPartnerNumber());
 
 				final ResponseEntity<SubscriptionData> subscriptionData;
 				try {
-					// Partner Service Call
+					// Partner Service Call for checking subtype details
 					subscriptionData = partnerProxy.validatePartner(
 							new PartnerServiceDto(user.getEnrollmentDetail().getSubscriptionData()),
 							user.getEnrollmentDetail().getPartnerNumber());
@@ -106,6 +107,7 @@ public class V2EnrollmentController {
 					final String SUBSCRIBER_NUMBER = AuthService.generateRandomAlphaNumeric();
 					LOGGER.info("Generated Subscriber Number {}", SUBSCRIBER_NUMBER);
 
+					//Third Party entity call
 					ResponseEntity<Boolean> thirdPartyResponse = thirdPartyProxy.createCustomer(
 							new ThirdPartyEntityDto(user.getEnrollmentDetail().getPartnerNumber(), SUBSCRIBER_NUMBER,
 									user.getEnrollmentDetail().getSubscriptionData().getSubtypeNumber()));
