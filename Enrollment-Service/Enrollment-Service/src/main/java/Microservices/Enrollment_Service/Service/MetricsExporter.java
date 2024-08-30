@@ -25,7 +25,7 @@ public class MetricsExporter {
     
     Logger LOGGER=LoggerFactory.getLogger(MetricsExporter.class);
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 120000)
     public void exportMetrics() {
         Collection<Meter> meters = meterRegistry.getMeters();
 
@@ -37,9 +37,9 @@ public class MetricsExporter {
                 metric.setMetricName(metricName);
                 metric.setMetricValue(metricValue);
                 metric.setTimestamp(new Timestamp(System.currentTimeMillis()));
-                LOGGER.info("Metrics to be inseted:{}",metric);
+                //LOGGER.info("Metrics to be inseted:{}",metric);
                 metricRepository.save(metric);
-                LOGGER.info("Metrics Inserted");
+               // LOGGER.info("Metrics Inserted");
             });
         }
     }
