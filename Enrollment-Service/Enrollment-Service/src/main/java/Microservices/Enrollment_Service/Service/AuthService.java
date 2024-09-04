@@ -3,42 +3,51 @@ package Microservices.Enrollment_Service.Service;
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import Microservices.Enrollment_Service.Dto.EnrollmentStatus;
-import Microservices.Enrollment_Service.Publisher.EnrollmentStatusProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import Microservices.Enrollment_Service.Dto.EnrollmentStatus;
 import Microservices.Enrollment_Service.Dto.ExceptionResponse;
 import Microservices.Enrollment_Service.Dto.SubscriberDto;
+import Microservices.Enrollment_Service.Dto.SubscriptionData;
+import Microservices.Enrollment_Service.Entity.BillingPending;
+import Microservices.Enrollment_Service.Entity.EmailPending;
 import Microservices.Enrollment_Service.Entity.PersonalDetails;
 import Microservices.Enrollment_Service.Entity.Subscriber;
+import Microservices.Enrollment_Service.Publisher.BillingProducer;
+import Microservices.Enrollment_Service.Publisher.EnrollmentStatusProducer;
+import Microservices.Enrollment_Service.Publisher.RabbitMQProducer;
 import Microservices.Enrollment_Service.Repository.PersonalDetailsRepository;
 import Microservices.Enrollment_Service.Repository.SubscriberRepository;
 import Microservices.Enrollment_Service.exception.DuplicateEntryException;
 import Microservices.Enrollment_Service.exception.ErrorCodes;
 import Microservices.Enrollment_Service.exception.ValidationException;
+import lombok.AllArgsConstructor;
 
 @Service
+@AllArgsConstructor
 public class AuthService {
 
 	private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 	private static SecureRandom random = new SecureRandom();
-	@Autowired
 	private SubscriberRepository subscriberRepository;
-	@Autowired
 	private PersonalDetailsRepository personalDetailsRepository;
-	@Autowired
 	private EnrollmentStatusProducer enrollmentStatusProducer;
-
-	Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
+	private RabbitMQProducer rabbitMQProducer;
+	private BillingProducer billingProducer;
+	private EmailService emailService;
+	private BillingService billingService;
+	private static final Logger LOGGER = LoggerFactory.getLogger(AuthService.class);
 
 	public static String generateRandomAlphaNumeric() {
 		StringBuilder sb = new StringBuilder(10);
@@ -203,4 +212,35 @@ public class AuthService {
 		}
 
 	}
+	
+	public boolean isValidPartner(ResponseEntity<?> tokenResponse, SubscriberDto user) {
+	    Object body = tokenResponse.getBody();
+	    @SuppressWarnings("unchecked")
+	    Map<String, Object> responseBody = (Map<String, Object>) body;
+	    String partnerNumberFromToken = Optional.ofNullable(responseBody).map(map -> (String) map.get("partnerNumber"))
+	            .orElse(null);
+	    Long partnerNumberFromUser = user.getEnrollmentDetail().getPartnerNumber();
+	    return partnerNumberFromToken != null && partnerNumberFromToken.equals(partnerNumberFromUser.toString());
+	}
+	public void submitBillingPendingEntry(Subscriber subscriber, SubscriptionData subscriptionData) {
+	    CompletableFuture.runAsync(() -> {
+	        BillingPending billingPending = new BillingPending(subscriber.getSubscriberNumber(),
+	                subscriber.getPartnerNumber(),
+	                subscriptionData.getSubtypeNumber(),
+	                subscriptionData.getPricingRoutine(), "BILLING-PENDING");
+	        billingService.saveBillingPendingEntry(billingPending);
+	        billingProducer.sendMessage(billingPending);
+	    });
+	}
+	public void submitEmailPendingEntry(Subscriber subscriber) {
+	    CompletableFuture.runAsync(() -> {
+	        EmailPending emailPending = emailService.addPendingEntry(new EmailPending(subscriber.getSubscriberNumber(),
+	                subscriber.getPersonalDetails().getEmail(), 800, "EMAIL_PENDING"));
+	        rabbitMQProducer.sendMessage(emailPending);
+	    });
+	}
+	
+	
+	
+	
 }

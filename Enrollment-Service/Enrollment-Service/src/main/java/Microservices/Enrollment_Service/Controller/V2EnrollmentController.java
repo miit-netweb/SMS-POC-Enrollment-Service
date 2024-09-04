@@ -73,6 +73,7 @@ public class V2EnrollmentController {
 			LOGGER.error("Original exception: {}", ex.getMessage());
 			throw new ValidationException(401, "Invalid Token",HttpStatus.BAD_REQUEST);
 		}
+		
          //Claims Check to verify token with partner number
 		Object body = responseEntity.getBody();
 		Map<String, Object> responseBody = (Map<String, Object>) body;
@@ -81,6 +82,7 @@ public class V2EnrollmentController {
 		Long partnerNumberFromUser = user.getEnrollmentDetail().getPartnerNumber();
 		if (partnerNumber != null && partnerNumber.equals(partnerNumberFromUser.toString())) {
 			//validating user details
+	
 			if (service.ValidateResponse(user)) {
 				LOGGER.info("Validation successful for user of partner number-> {}",
 						user.getEnrollmentDetail().getPartnerNumber());
